@@ -676,7 +676,10 @@ namespace AfterRichPresence
                         TimestampEnd = (long?)Convert.ToInt64((presenceTable["timestampEnd"])),
                     };
                     if (lastInfo != info)
+                    {
+                        lastInfo = info;
                         presenceManager.UpdateActivity(info);
+                    }
                 }
                 else
                     presenceManager.ClearActivity();
