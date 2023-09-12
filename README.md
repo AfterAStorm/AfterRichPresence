@@ -12,3 +12,6 @@ A Windows programmable discord rich presence
 
 # Notes
 - Windows only (because of a few features, to lazy to release different versions)
+
+# Images
+![Application Image 1](./showcase1.png)
