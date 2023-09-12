@@ -818,7 +818,7 @@ namespace AfterRichPresence
 
         private void docsLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            System.Diagnostics.Process.Start(new ProcessStartInfo("cmd", $"/c start https://github.com/AfterAStorm/AfterRichPresence") { CreateNoWindow = true });
+            System.Diagnostics.Process.Start(new ProcessStartInfo("cmd", $"/c start https://github.com/AfterAStorm/AfterRichPresence/wiki") { CreateNoWindow = true });
             applicationsLinkLabel.LinkVisited = true;
         }
 
