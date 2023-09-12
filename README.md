@@ -1,5 +1,5 @@
 # AfterRichPresence
-A windows discord rich presense application
+A Windows programmable discord rich presence
 
 # Features
 - Scriptable
