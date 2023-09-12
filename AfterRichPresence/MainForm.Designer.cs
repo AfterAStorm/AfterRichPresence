@@ -40,6 +40,10 @@
             profilesAddPage = new TabPage();
             profilePanel = new Panel();
             profileEditorDynamicGroup = new GroupBox();
+            timerLeft = new Label();
+            timerUnit = new ComboBox();
+            label15 = new Label();
+            timerInput = new TextBox();
             profileEditorDynamicRefresh = new Button();
             luaPopoutLinkLabel = new LinkLabel();
             docsLinkLabel = new LinkLabel();
@@ -183,6 +187,10 @@
             // 
             // profileEditorDynamicGroup
             // 
+            profileEditorDynamicGroup.Controls.Add(timerLeft);
+            profileEditorDynamicGroup.Controls.Add(timerUnit);
+            profileEditorDynamicGroup.Controls.Add(label15);
+            profileEditorDynamicGroup.Controls.Add(timerInput);
             profileEditorDynamicGroup.Controls.Add(profileEditorDynamicRefresh);
             profileEditorDynamicGroup.Controls.Add(luaPopoutLinkLabel);
             profileEditorDynamicGroup.Controls.Add(docsLinkLabel);
@@ -198,6 +206,42 @@
             profileEditorDynamicGroup.TabIndex = 11;
             profileEditorDynamicGroup.TabStop = false;
             profileEditorDynamicGroup.Text = "Dynamic Presence Options";
+            // 
+            // timerLeft
+            // 
+            timerLeft.Location = new Point(132, 89);
+            timerLeft.Name = "timerLeft";
+            timerLeft.Size = new Size(72, 77);
+            timerLeft.TabIndex = 20;
+            timerLeft.Text = "0s";
+            // 
+            // timerUnit
+            // 
+            timerUnit.FormattingEnabled = true;
+            timerUnit.Items.AddRange(new object[] { "milliseconds", "seconds", "minutes", "hours", "days" });
+            timerUnit.Location = new Point(132, 63);
+            timerUnit.Name = "timerUnit";
+            timerUnit.Size = new Size(72, 23);
+            timerUnit.TabIndex = 19;
+            timerUnit.Text = "milliseconds";
+            timerUnit.SelectedIndexChanged += DynamicPropertiesChanged;
+            // 
+            // label15
+            // 
+            label15.AutoSize = true;
+            label15.Location = new Point(132, 19);
+            label15.Name = "label15";
+            label15.Size = new Size(37, 15);
+            label15.TabIndex = 18;
+            label15.Text = "Timer";
+            // 
+            // timerInput
+            // 
+            timerInput.Location = new Point(132, 37);
+            timerInput.Name = "timerInput";
+            timerInput.Size = new Size(72, 23);
+            timerInput.TabIndex = 17;
+            timerInput.TextChanged += DynamicPropertiesChanged;
             // 
             // profileEditorDynamicRefresh
             // 
@@ -231,6 +275,7 @@
             docsLinkLabel.TabStop = true;
             docsLinkLabel.Text = "Docs";
             docsLinkLabel.TextAlign = ContentAlignment.TopRight;
+            docsLinkLabel.LinkClicked += docsLinkLabel_LinkClicked;
             // 
             // label14
             // 
@@ -263,7 +308,7 @@
             // 
             profileEditorDynamicTriggers.CheckOnClick = true;
             profileEditorDynamicTriggers.FormattingEnabled = true;
-            profileEditorDynamicTriggers.Items.AddRange(new object[] { "Start", "Media Updated" });
+            profileEditorDynamicTriggers.Items.AddRange(new object[] { "Start", "Media Updated", "Timer" });
             profileEditorDynamicTriggers.Location = new Point(6, 37);
             profileEditorDynamicTriggers.Name = "profileEditorDynamicTriggers";
             profileEditorDynamicTriggers.Size = new Size(120, 94);
@@ -719,5 +764,9 @@
         private Button profileEditorDynamicRefresh;
         private Button profileSwitch;
         private ToolStripMenuItem trayConnected;
+        private TextBox timerInput;
+        private Label timerLeft;
+        private ComboBox timerUnit;
+        private Label label15;
     }
 }

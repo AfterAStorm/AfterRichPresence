@@ -55,6 +55,8 @@ print(media.artist) -- the artist
 print(media.position) -- the position (in seconds)
 print(media.length) -- the length (in seconds)";
         public DynamicTriggers Triggers { get; set; } = DynamicTriggers.None;
+        public int TimerInterval = 0;
+        public TimerUnit TimerUnit;
 
         public DynamicProperties()
         {
@@ -67,6 +69,16 @@ print(media.length) -- the length (in seconds)";
         None = 0,
         Start = 1,
         MediaUpdated = 2,
+        Timer = 4,
+    }
+
+    internal enum TimerUnit
+    {
+        Milliseconds = 0,
+        Seconds = 1,
+        Minutes = 2,
+        Hours = 3,
+        Days = 4, 
     }
 
     internal enum ProfileType

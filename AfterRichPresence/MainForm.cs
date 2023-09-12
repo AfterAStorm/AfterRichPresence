@@ -29,6 +29,10 @@ namespace AfterRichPresence
 
         PresenceManager? presenceManager;
         Lua? luaState;
+        System.Windows.Forms.Timer timer;
+        DateTimeOffset lastTick;
+        System.Windows.Forms.Timer timerTimerDisplayUpdater;
+        ActivityInfo lastInfo;
         //Script? script;
 
         public MainForm()
@@ -44,6 +48,18 @@ namespace AfterRichPresence
             MediaManager.MediaInfoChanged += MediaManager_MediaInfoChanged;
             MediaManager.MediaStateChanged += MediaManager_MediaStateChanged;
             //Script.WarmUp();
+            timer = new();
+            timer.Stop();
+            timer.Interval = 1;
+            timer.Tick += Timer_Tick;
+            timerTimerDisplayUpdater = new();
+            timerTimerDisplayUpdater.Interval = 100;
+            timerTimerDisplayUpdater.Tick += (_, _) =>
+            {
+                timerLeft.Invoke(() => timerLeft.Text = !timer.Enabled ? "Enable timer trigger" :
+                $"{DateTimeOffset.Now.Subtract(lastTick).TotalSeconds} seconds");
+            };
+            timerTimerDisplayUpdater.Start();
             presenceConfigChangedTimer.Tick += (_, _) =>
             {
                 if (presenceConfigChangedTimerCount == 100)
@@ -316,6 +332,8 @@ namespace AfterRichPresence
             // dynamic
             profileEditorDynamicGroup.Visible = profile.Type == ProfileType.Dynamic;
             profileEditorDynamicLua.Text = profile.DynamicProperties.Script;
+            timerInput.Text = profile.DynamicProperties.TimerInterval.ToString();
+            timerUnit.Text = profile.DynamicProperties.TimerUnit.ToString().ToLower();
 
             // other
             profileSwitch.Enabled =
@@ -350,7 +368,6 @@ namespace AfterRichPresence
                 profileEditorName,
                 profileEditorTypeStatic,
                 profileEditorTypeDynamic,
-                profileEditorRemove,
 
                 profileEditorStaticGroup,
 
@@ -492,6 +509,34 @@ namespace AfterRichPresence
             StaticPropertiesChanged(sender, e);
         }
 
+        private static int GetIntervalBasedOn(int interval, TimerUnit unit)
+        {
+            return unit switch
+            {
+                TimerUnit.Milliseconds => interval, // already in ms :)
+                TimerUnit.Seconds => interval * 1000, // ms to s
+                TimerUnit.Minutes => interval * 1000 * 60, // ms to s to min
+                TimerUnit.Hours => interval * 1000 * 60 * 60, // ms to s to min to hr
+                TimerUnit.Days => interval * 1000 * 60 * 60 * 24, // ms to s to min to hr to days
+                _ => interval,
+            };
+        }
+
+        private void CheckTimerTrigger(DynamicProperties properties)
+        {
+            if (properties.Triggers.HasFlag(DynamicTriggers.Timer))
+            {
+                timer.Interval = Math.Max(1, GetIntervalBasedOn(properties.TimerInterval, properties.TimerUnit));
+                lastTick = DateTimeOffset.Now;
+                if (!timer.Enabled)
+                    timer.Start();
+            }
+            else
+            {
+                timer.Stop();
+            }
+        }
+
         private void DynamicPropertiesChanged(object sender, EventArgs e)
         {
             if (suppressEditorEvents)
@@ -502,16 +547,28 @@ namespace AfterRichPresence
             properties.Script = profileEditorDynamicLua.Text;
             properties.Triggers = DynamicTriggers.None;
 
+            bool parsed = int.TryParse(timerInput.Text, out int interval);
+            if (parsed)
+                properties.TimerInterval = interval;
+            properties.TimerUnit = Enum.Parse<TimerUnit>(timerUnit.Text.Substring(0, 1).ToUpper() + timerUnit.Text.Substring(1));
+
             foreach (string item in profileEditorDynamicTriggers.CheckedItems)
             {
                 DynamicTriggers trigger = Enum.Parse<DynamicTriggers>(item.Replace(" ", ""));
                 properties.Triggers |= trigger;
             }
+            CheckTimerTrigger(properties);
 
             profile.DynamicProperties = properties;
             profiles[currentProfileIndex] = profile;
 
             SaveProfiles();
+        }
+
+        private void Timer_Tick(object? sender, EventArgs e)
+        {
+            lastTick = DateTimeOffset.Now;
+            UpdatePresence(DynamicTriggers.Timer);
         }
 
         #endregion
@@ -553,6 +610,8 @@ namespace AfterRichPresence
             {
                 if ((profile.DynamicProperties.Triggers & trigger) != trigger)
                     return; // trigger disabled
+                if (luaState != null)
+                    luaState.Close();
                 profileEditorDynamicOutput.Invoke(() => profileEditorDynamicOutput.Clear());
                 luaState = new();
                 luaState.RegisterFunction("print", this, typeof(MainForm).GetMethod(nameof(MainForm.LuaPrint), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance));
@@ -616,11 +675,13 @@ namespace AfterRichPresence
                         TimestampStart = (long?)Convert.ToInt64((presenceTable["timestampStart"])),
                         TimestampEnd = (long?)Convert.ToInt64((presenceTable["timestampEnd"])),
                     };
-                    presenceManager.UpdateActivity(info);
+                    if (lastInfo != info)
+                        presenceManager.UpdateActivity(info);
                 }
                 else
                     presenceManager.ClearActivity();
                 luaState.Dispose();
+                luaState = null;
                 /*script = new(DefaultScriptModules);
                 script.Options.DebugPrint = s =>
                 {
@@ -719,6 +780,7 @@ namespace AfterRichPresence
             var flags = DynamicTriggers.Start;
             if (MediaManager.GetLiveMediaState() == MediaState.Playing)
                 flags |= DynamicTriggers.MediaUpdated;
+            CheckTimerTrigger(profile.DynamicProperties);
             UpdatePresence(flags);
         }
 
@@ -752,6 +814,12 @@ namespace AfterRichPresence
                 profileEditorDynamicLua.Enabled = true;
                 profilesTabControl.Enabled = true;
             };
+        }
+
+        private void docsLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start(new ProcessStartInfo("cmd", $"/c start https://github.com/AfterAStorm/AfterRichPresence") { CreateNoWindow = true });
+            applicationsLinkLabel.LinkVisited = true;
         }
 
         private void profileEditorDynamicRefresh_Click(object sender, EventArgs e)

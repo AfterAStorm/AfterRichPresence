@@ -134,5 +134,8 @@ namespace AfterRichPresence
 
         public long? TimestampStart { get; set; }
         public long? TimestampEnd { get; set; }
+
+        public static bool operator ==(ActivityInfo l, ActivityInfo r) => l.Details == r.Details && l.State == r.State && l.AssetLargeImage == r.AssetLargeImage && l.AssetSmallImage == r.AssetSmallImage && l.AssetLargeText == r.AssetLargeText && l.AssetSmallText == r.AssetSmallText && l.TimestampStart == r.TimestampStart && l.TimestampEnd == r.TimestampEnd;
+        public static bool operator !=(ActivityInfo l, ActivityInfo r) => l.Details != r.Details || l.State != r.State || l.AssetLargeImage != r.AssetLargeImage || l.AssetSmallImage != r.AssetSmallImage || l.AssetLargeText != r.AssetLargeText || l.AssetSmallText != r.AssetSmallText || l.TimestampStart != r.TimestampStart || l.TimestampEnd != r.TimestampEnd;
     }
 }
