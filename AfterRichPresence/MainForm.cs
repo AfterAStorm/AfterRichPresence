@@ -86,7 +86,7 @@ namespace AfterRichPresence
         private void LoadProfiles()
         {
             string? profilesStr = Properties.Settings.Default.Profiles;
-            if (profilesStr == null)
+            if (profilesStr == null || profilesStr.Length <= 2)
             {
                 AddDefault();
                 Profile mediaProfile = new Profile()
