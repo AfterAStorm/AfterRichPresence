@@ -812,6 +812,7 @@ namespace AfterRichPresence
                 profileEditorDynamicLua.Text = lua;
             });
             profilesTabControl.Enabled = false;
+            form.Icon = Icon;
             form.Show();
 
             form.FormClosing += (_, _) =>

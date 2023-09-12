@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             trayIcon = new NotifyIcon(components);
             trayContextMenuStrip = new ContextMenuStrip(components);
             trayConnected = new ToolStripMenuItem();
@@ -688,6 +689,7 @@
             Controls.Add(profilePanel);
             Controls.Add(profilesTabControl);
             FormBorderStyle = FormBorderStyle.FixedSingle;
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MaximizeBox = false;
             Name = "MainForm";
             SizeGripStyle = SizeGripStyle.Hide;
