@@ -3,6 +3,7 @@ A Windows programmable discord rich presence
 
 # Features
 - Scriptable (with lua)
+    - [Docs](https://github.com/AfterAStorm/AfterRichPresence/wiki)
 - Profiles
 
 # TODO
