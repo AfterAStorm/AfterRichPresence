@@ -96,6 +96,8 @@ namespace AfterRichPresence
                     ClientId = 0,
                 };
                 profiles.Add(mediaProfile);
+                UpdateTabs();
+                UpdateTabEditor();
                 return;
             }
             Debug.WriteLine("Loading... " + profilesStr);
