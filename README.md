@@ -15,3 +15,4 @@ A Windows programmable discord rich presence
 
 # Images
 ![Application Image 1](./showcase1.png)
+![Application Image 2](./showcase2.png)
