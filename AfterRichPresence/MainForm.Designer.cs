@@ -88,6 +88,7 @@
             profileDisconnect = new Button();
             profileStatus = new Label();
             profileSwitch = new Button();
+            debugLog = new RichTextBox();
             trayContextMenuStrip.SuspendLayout();
             profilesTabControl.SuspendLayout();
             profilePanel.SuspendLayout();
@@ -170,6 +171,7 @@
             // 
             // profilePanel
             // 
+            profilePanel.Controls.Add(debugLog);
             profilePanel.Controls.Add(profileEditorDynamicGroup);
             profilePanel.Controls.Add(applicationsLinkLabel);
             profilePanel.Controls.Add(profileEditorStaticGroup);
@@ -677,6 +679,16 @@
             profileSwitch.UseVisualStyleBackColor = true;
             profileSwitch.Click += profileSwitch_Click;
             // 
+            // debugLog
+            // 
+            debugLog.DetectUrls = false;
+            debugLog.Location = new Point(367, 35);
+            debugLog.Name = "debugLog";
+            debugLog.ReadOnly = true;
+            debugLog.Size = new Size(248, 68);
+            debugLog.TabIndex = 12;
+            debugLog.Text = "";
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -770,5 +782,6 @@
         private Label timerLeft;
         private ComboBox timerUnit;
         private Label label15;
+        private RichTextBox debugLog;
     }
 }

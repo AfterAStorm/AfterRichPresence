@@ -26,6 +26,10 @@ namespace AfterRichPresence
         {
             this.clientId = clientId;
             discord = new Discord.Discord(clientId, (ulong)Discord.CreateFlags.NoRequireDiscord);
+            discord.SetLogHook(LogLevel.Debug, (level, s) =>
+            {
+                MainForm.DebugLog(level.ToString() + ": " + s);
+            });
             activityManager = discord.GetActivityManager();
             loop = new()
             {
@@ -60,6 +64,7 @@ namespace AfterRichPresence
                 {
                     shouldDispose = false;
                 }
+                MainForm.DebugLog($"RunCallbacks Error: {ex.Message}");
             }
         }
 

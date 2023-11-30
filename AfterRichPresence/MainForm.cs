@@ -24,6 +24,7 @@ namespace AfterRichPresence
             CoreModules.TableIterators |
             CoreModules.String;*/
 
+        
         List<Profile> profiles = new List<Profile>();
         int currentProfileIndex { get; set; } = 0;
 
@@ -35,8 +36,11 @@ namespace AfterRichPresence
         ActivityInfo lastInfo;
         //Script? script;
 
+        static MainForm instance;
+
         public MainForm()
         {
+            instance = this;
             InitializeComponent();
             trayIcon.Icon = Icon;
             trayIcon.Visible = false;
@@ -69,6 +73,11 @@ namespace AfterRichPresence
             };
             presenceConfigChangedTimer.Interval = 1;
             presenceConfigChangedTimer.Start();
+        }
+
+        public static void DebugLog(string gtxt)
+        {
+            instance.debugLog.Invoke(() => instance.debugLog.Text += gtxt + "\n");
         }
 
         #region # - Configuration
