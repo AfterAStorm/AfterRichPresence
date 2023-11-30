@@ -593,8 +593,70 @@ namespace AfterRichPresence
         {
             foreach (object o in s)
             {
-                profileEditorDynamicOutput.Invoke(() => profileEditorDynamicOutput.Text += $"{o.ToString()}\n");
+                profileEditorDynamicOutput.Invoke(() => profileEditorDynamicOutput.Text += $"{o ?? "nil"}\n");
             }
+        }
+
+        LuaTable LuaNetRequest(LuaTable parameters)
+        {
+            if (luaState == null)
+                return null;
+            string? url = (string?)parameters["Url"];
+            LuaTable? headers = (LuaTable?)parameters["Headers"];
+            string method = (string?)parameters["Method"] ?? "GET";
+            string? body = (string?)parameters["Body"];
+
+            if (url == null)
+                throw new ArgumentNullException("Url");
+
+            using HttpClient client = new();
+            client.DefaultRequestHeaders.Clear();
+            if (headers != null)
+            {
+                foreach (KeyValuePair<object, object> kvp in headers)
+                {
+                    client.DefaultRequestHeaders.Add(kvp.Key.ToString(), kvp.Value.ToString());
+                }
+            }
+
+            Task<HttpResponseMessage> responseTask;
+            switch (method.ToUpper())
+            {
+                default:
+                case "GET":
+                    responseTask = client.GetAsync(url);
+                    break;
+                case "POST":
+                    responseTask = client.PostAsync(url, new StringContent(body));
+                    break;
+                case "PUT":
+                    responseTask = client.PutAsync(url, new StringContent(body));
+                    break;
+                case "PATCH":
+                    responseTask = client.PatchAsync(url, new StringContent(body));
+                    break;
+                case "DELETE":
+                    responseTask = client.DeleteAsync(url);
+                    break;
+            }
+            responseTask.Wait();
+            HttpResponseMessage response = responseTask.Result;
+
+            luaState.NewTable("netrequest");
+            LuaTable output = luaState.GetTable("netrequest");
+            output["Success"] = response.IsSuccessStatusCode;
+            output["StatusCode"] = (int)response.StatusCode;
+            output["StatusMessage"] = response.ReasonPhrase;
+            luaState.NewTable("netrequestheaders");
+            LuaTable respHeaders = luaState.GetTable("netrequestheaders");
+            foreach (KeyValuePair<string, IEnumerable<string>> header in response.Headers)
+            {
+                respHeaders[header.Key] = string.Join(",", header.Value.ToArray());
+            } 
+            output["Headers"] = respHeaders;
+            output["Body"] = response.Content.ReadAsStringAsync().Result;
+
+            return output;
         }
 
         private void UpdatePresence(DynamicTriggers trigger = DynamicTriggers.None)
@@ -636,6 +698,11 @@ namespace AfterRichPresence
                 for (int i = 0; i < triggers.Count; i++)
                     triggersStr += i == triggers.Count - 1 ? triggers[i] : triggers[i] + ", ";
                 profileEditorDynamicOutput.Invoke(() => profileEditorDynamicOutput.Text = $"Trigger ({triggersStr})\n");
+
+                luaState.NewTable("net");
+                LuaTable netTable = luaState.GetTable("net");
+                netTable["request"] = luaState.RegisterFunction("net/request", this, typeof(MainForm).GetMethod(nameof(LuaNetRequest), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance));
+                luaState["net"] = netTable;
 
                 if (trigger.HasFlag(DynamicTriggers.MediaUpdated))
                 {
@@ -839,7 +906,13 @@ namespace AfterRichPresence
 
         private void profileEditorDynamicRefresh_Click(object sender, EventArgs e)
         {
-            UpdatePresence(DynamicTriggers.Start | DynamicTriggers.MediaUpdated);
+            Profile profile = profiles[activeProfileIndex];
+            DynamicTriggers flags = DynamicTriggers.Start;
+            if (profile.DynamicProperties.Triggers.HasFlag(DynamicTriggers.MediaUpdated))
+            {
+                flags |= DynamicTriggers.MediaUpdated;
+            }
+            UpdatePresence(flags);
         }
     }
 }

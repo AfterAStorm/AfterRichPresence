@@ -53,6 +53,7 @@ presence.timestampEnd = os.time() + 30
 print(media.title) -- the title of the current playing media
 print(media.artist) -- the artist
 print(media.position) -- the position (in seconds)
+print(media.state) -- the sttate (Playing, Paused, or Stopped)
 print(media.length) -- the length (in seconds)";
         public DynamicTriggers Triggers { get; set; } = DynamicTriggers.None;
         public int TimerInterval = 0;
