@@ -5,6 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Media.Control;
+using System.Windows.Media.Imaging;
+using Windows.Storage.Streams;
+using System.IO;
 
 namespace AfterRichPresence
 {
@@ -72,12 +75,29 @@ namespace AfterRichPresence
             var timeline = session.GetTimelineProperties();
             if (timeline == null)
                 return new();
+            /*IRandomAccessStreamWithContentType thumbStrean = properties.Thumbnail.OpenReadAsync().GetAwaiter().GetResult();
+            byte[] fileBytes = new byte[thumbStrean.Size];
+            using (DataReader reader = new DataReader(thumbStrean))
+            {
+                reader.LoadAsync((uint)thumbStrean.Size).GetAwaiter().GetResult();
+                reader.ReadBytes(fileBytes);
+            }
+            BitmapImage image = new BitmapImage();
+            using (var ms = new MemoryStream(fileBytes))
+            {
+                image.BeginInit();
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.StreamSource = ms;
+                image.EndInit();
+            }*/
+
             return new()
             {
                 Title       = properties.Title,
                 Artist      = properties.Artist,
                 Position    = timeline.Position,
-                Length      = timeline.EndTime
+                Length      = timeline.EndTime,
+                //Icon        = properties.Thumbnail
             };
         }
 
@@ -193,6 +213,7 @@ namespace AfterRichPresence
     {
         public string Title { get; set; }
         public string Artist { get; set; }
+        public string Icon { get; set; }
 
         public TimeSpan Position { get; set; }
         public TimeSpan Length { get; set; }

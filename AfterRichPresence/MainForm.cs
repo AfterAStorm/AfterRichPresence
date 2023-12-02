@@ -1,10 +1,16 @@
 using Discord;
 //using MoonSharp.Interpreter;
 using NLua;
+using System.Collections;
 using System.Diagnostics;
+using System.Net.Http;
+using System.Runtime.Serialization.Json;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Windows.Forms;
+using System.Xml.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static System.Windows.Forms.AxHost;
 
@@ -597,6 +603,73 @@ namespace AfterRichPresence
             }
         }
 
+        LuaTable JsonDecode(IEnumerable obj)
+        {
+            string tbl = new Random().Next().ToString();
+            luaState.NewTable(tbl);
+            LuaTable output = luaState.GetTable(tbl);
+            if (obj is JsonArray)
+            {
+                foreach (JsonNode kv in obj)
+                {
+                    JsonNode node = kv;
+                    if (node is JsonValue)
+                    {
+                        bool isNumber = node.AsValue().TryGetValue<int>(out int intValue);
+                        if (isNumber)
+                            output[output.Values.Count + 1] = intValue;
+                        else
+                            output[output.Values.Count + 1] = node.AsValue().GetValue<string>();
+                    }
+                    else if (node is JsonArray)
+                    {
+                        output[output.Values.Count + 1] = JsonDecode(node.AsArray());
+                    }
+                    else if (node is JsonObject)
+                    {
+                        output[output.Values.Count + 1] = JsonDecode(node.AsObject());
+                    }
+                }
+            }
+            else
+            {
+                foreach (KeyValuePair<string, JsonNode> kv in obj)
+                {
+                    JsonNode node = kv.Value;
+                    if (node is JsonValue)
+                    {
+                        bool isNumber = node.AsValue().TryGetValue<double>(out double intValue);
+                        if (isNumber)
+                            output[kv.Key] = intValue;
+                        else
+                            output[kv.Key] = node.AsValue().GetValue<string>();
+                    }
+                    else if (node is JsonArray)
+                    {
+                        output[kv.Key] = JsonDecode(node.AsArray());
+                    }
+                    else if (node is JsonObject)
+                    {
+                        output[kv.Key] = JsonDecode(node.AsObject());
+                    }
+                }
+            }
+
+            return output;
+        }
+
+        LuaTable LuaJSONDecode(string json)
+        {
+            if (luaState == null)
+                return null;
+
+            //var reader = JsonReaderWriterFactory.CreateJsonReader(Encoding.UTF8.GetBytes(json)., new System.Xml.XmlDictionaryReaderQuotas());
+            //var root = XElement.Load(reader);
+            var root = JsonNode.Parse(json).AsObject();
+
+            return JsonDecode(root);
+        }
+
         LuaTable LuaNetRequest(LuaTable parameters)
         {
             if (luaState == null)
@@ -702,6 +775,7 @@ namespace AfterRichPresence
                 luaState.NewTable("net");
                 LuaTable netTable = luaState.GetTable("net");
                 netTable["request"] = luaState.RegisterFunction("net/request", this, typeof(MainForm).GetMethod(nameof(LuaNetRequest), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance));
+                netTable["jsondecode"] = luaState.RegisterFunction("net/jsondecode", this, typeof(MainForm).GetMethod(nameof(LuaJSONDecode), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance));
                 luaState["net"] = netTable;
 
                 if (trigger.HasFlag(DynamicTriggers.MediaUpdated))
